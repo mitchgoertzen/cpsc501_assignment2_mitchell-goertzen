@@ -104,9 +104,22 @@ void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
     int outputSize = inpSize + irSize - 1;
     double *outputArray = new double[outputSize];
 
+    
     for(int i = 0;i < irSize;i++){
-         for(int j = 0;j < inpSize;j++){
+        /*
+        OPTIMIZATION 1: Unroll inside for-loop
+        */
+        int j;
+         for(j = 0;j < inpSize - 2;j+=3){
             outputArray[i+j] += IR[i] * INPUT[j];
+            outputArray[i+j+1] += IR[i] * INPUT[j+1];
+            outputArray[i+j+2] += IR[i] * INPUT[j+2];
+         }
+         if(j == inpSize - 1){
+              outputArray[i+j] += IR[i] * INPUT[j];
+         } else if(j == inpSize - 2){
+             outputArray[i+j] += IR[i] * INPUT[j];
+             outputArray[i+j+1] += IR[i] * INPUT[j+1];
          }
     }
 
