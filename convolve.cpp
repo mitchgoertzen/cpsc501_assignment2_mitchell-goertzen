@@ -50,32 +50,50 @@ char *outputFilename;
 int main(int argc, char **argv) {
 	
 
-	if (argc < 3) {
+	if (argc < 4) {
 		printf("Wrong input\n");
 		exit(-1);
 	}
 
     char *inputFilename;
 	inputFilename = argv[1];
-	outputFilename = argv[2];
+
+    char *irFilename;
+	irFilename = argv[2];
+
+	outputFilename = argv[3];
 
     FILE* inputFile = fopen(inputFilename, "r");
     if (inputFile == nullptr)
     {
-        fprintf(stderr, "Unable to open file: %s\n", inputFilename);
+        fprintf(stderr, "Unable to open wav file: %s\n", inputFilename);
         return 1;
     }
 
-	int outputChannels;
-    int numSamples;
+    FILE* irFile = fopen(irFilename, "r");
+    if (irFile == nullptr)
+    {
+        fprintf(stderr, "Unable to open IR file: %s\n", inputFilename);
+        return 1;
+    }
 
-    printf("Reading input file %s...\n", inputFilename);
-    readWavFileHeader(&outputChannels, &numSamples, inputFile);
+	int inputChannels;
+    int inputSamples;
 
-	double *outputArray = readWavFile(&numSamples, &outputChannels, inputFilename);
+    int irChannels;
+    int irSamples;
+
+    printf("Reading wav file %s...\n", inputFilename);
+    readWavFileHeader(&inputChannels, &inputSamples, inputFile);
+
+    printf("Reading IR file %s...\n", irFilename);
+    readWavFileHeader(&irChannels, &irSamples, irFile);
+
+	double *inputArray = readWavFile(&inputSamples, &inputChannels, inputFilename);
+    double *irArray = readWavFile(&irSamples, &irChannels, irFilename);
 
     printf("Writing result to file %s...\n", outputFilename);
-    writeWavFile(outputArray, numSamples, outputChannels, outputFilename);
+    writeWavFile(inputArray, inputSamples, inputChannels, outputFilename);
     
     printf("Finished");
 
@@ -113,6 +131,17 @@ double* readWavFile(int *arraySize, int *channels, char *filename){
 
     for (int i = 0; i < size; i++) {
         outputArray[i] = buffer[i];
+    }
+
+    double largestDouble = 1;
+    for (int i=0; i< size; i++) {
+		if (abs(outputArray[i]) > largestDouble) {
+			largestDouble = abs(outputArray[i]);
+		}
+    }
+
+    for (int i=0; i<size; i++) {
+		outputArray[i] = (short) ((outputArray[i]/largestDouble)*MAX_SHORT_VALUE);
     }
 
     delete buffer;
@@ -206,8 +235,8 @@ void writeWavFile(double *outputArray, int outputArraySize, int channels, char *
     // doubles to be in the range (-1, 1) to prevent 16-bit integer overflow
     double largestDouble = 1;
     for (int i=0; i< outputArraySize; i++) {
-		if (outputArray[i] > largestDouble) {
-			largestDouble = outputArray[i];
+		if (abs(outputArray[i]) > largestDouble) {
+			largestDouble = abs(outputArray[i]);
 		}
     }
 
