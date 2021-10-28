@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
     FILE* irFile = fopen(irFilename, "r");
     if (irFile == nullptr)
     {
-        fprintf(stderr, "Unable to open IR file: %s\n", inputFilename);
+        fprintf(stderr, "Unable to open IR file: %s\n", irFilename);
         return 1;
     }
 
@@ -105,22 +105,23 @@ void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
     double *outputArray = new double[outputSize];
 
     
+    double irData;
     for(int i = 0;i < irSize;i++){
-        /*
-        OPTIMIZATION 1: Unroll inside for-loop
-        */
+        //OPTIMIZATION 2: Minimize Work by moving IR[i] out of inner-loop
+        irData = IR[i];
         int j;
-         for(j = 0;j < inpSize - 2;j+=3){
-            outputArray[i+j] += IR[i] * INPUT[j];
-            outputArray[i+j+1] += IR[i] * INPUT[j+1];
-            outputArray[i+j+2] += IR[i] * INPUT[j+2];
-         }
-         if(j == inpSize - 1){
-              outputArray[i+j] += IR[i] * INPUT[j];
-         } else if(j == inpSize - 2){
-             outputArray[i+j] += IR[i] * INPUT[j];
-             outputArray[i+j+1] += IR[i] * INPUT[j+1];
-         }
+        //OPTIMIZATION 1: Partial Unroll inner-loop
+        for(j = 0;j < inpSize - 2;j+=3){
+            outputArray[i+j] += irData * INPUT[j];
+            outputArray[i+j+1] += irData * INPUT[j+1];
+            outputArray[i+j+2] += irData * INPUT[j+2];
+        }
+        if(j == inpSize - 1){
+            outputArray[i+j] += irData * INPUT[j];
+        } else if(j == inpSize - 2){
+            outputArray[i+j] += irData * INPUT[j];
+            outputArray[i+j+1] += irData * INPUT[j+1];
+        }
     }
 
     printf("Writing result to file %s...\n", outputFilename);
