@@ -14,6 +14,7 @@
 #include <string>
 #include <fstream>
 #include "functions.h"
+#include <iostream>
 
 // CONSTANTS ******************************
 
@@ -45,38 +46,79 @@
 #define FMT_OFFSET			12
 
 using namespace std;
-
-
-
+char *outputFilename;
 int main(int argc, char **argv) {
-	char *outputFilename;
+	
 
-	if (argc != 2) {
-		printf("Please enter a filename\n");
+	if (argc < 3) {
+		printf("Wrong input\n");
 		exit(-1);
 	}
 
-	outputFilename = argv[1];
-	
-	// a good exercise would be to convert this to stereophonic
-	int outputChannels = MONOPHONIC;
-	
-	int outputArraySize = (int) SECONDS * SAMPLE_RATE;	// creates a 3-second tone
-	double *outputArray = new double[outputArraySize];
+    char *inputFilename;
+	inputFilename = argv[1];
+	outputFilename = argv[2];
 
-	// create a pure-tone A, which is a sine wave with period of 440 Hz
-	// and input samples to the array
-	for (int i = 0; i < outputArraySize; i++) {
-		outputArray[i] = sin(2 * PI * TONE_FREQUENCY * i / SAMPLE_RATE);
-	}
-	
-	printf("Writing result to file %s...\n", outputFilename);
-    writeWavFile(outputArray, outputArraySize, outputChannels, outputFilename);
+    FILE* inputFile = fopen(inputFilename, "r");
+    if (inputFile == nullptr)
+    {
+        fprintf(stderr, "Unable to open file: %s\n", inputFilename);
+        return 1;
+    }
+
+	int outputChannels;
+    int numSamples;
+
+    printf("Reading input file %s...\n", inputFilename);
+    readWavFileHeader(&outputChannels, &numSamples, inputFile);
+
+	double *outputArray = readWavFile(&numSamples, &outputChannels, inputFilename);
+
+    printf("Writing result to file %s...\n", outputFilename);
+    writeWavFile(outputArray, numSamples, outputChannels, outputFilename);
     
     printf("Finished");
 
 }
 
+
+void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
+
+    myHeader wavHeader;
+    int headerSize = sizeof(myHeader);
+
+    size_t bytesRead = fread(&wavHeader, 1, headerSize, inputFile);
+    if (bytesRead > 0)
+    {
+        int numberSamples = (int) (wavHeader.ChunkSize / ( wavHeader.BitsPerSample / 8));
+        int duration = numberSamples/ wavHeader.SampleRate;
+        numberSamples = duration * wavHeader.SampleRate;
+        *numSamples = numberSamples;
+    }
+
+    fclose(inputFile);
+    return;
+}
+
+double* readWavFile(int *arraySize, int *channels, char *filename){
+    
+    int numChannels = *channels;
+    int size = *arraySize;
+    double *outputArray = new double[size];
+    int16_t *buffer = new int16_t[size];
+
+    FILE* inp = fopen(filename, "r");
+
+    fread(buffer, 2, size, inp);
+
+    for (int i = 0; i < size; i++) {
+        outputArray[i] = buffer[i];
+    }
+
+    delete buffer;
+
+    return outputArray;
+}
 
 /*
 Writes the header for a WAV file with the given attributes to 

@@ -1,6 +1,24 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+int getFileSize(FILE* inFile);
+
+typedef struct HEADER
+{
+    uint8_t         ChunkID[4];
+    uint32_t        ChunkSize;
+    uint8_t         Format[4];
+    uint8_t         Subchunk1ID[4];
+    uint32_t        Subchunk1Size;
+    uint16_t        AudioFormat;
+    uint16_t        NumChannels;
+    uint32_t        SampleRate;
+    uint32_t        ByteRate;
+    uint16_t        BlockAlign;
+    uint16_t        BitsPerSample;
+    uint8_t         Subchunk2ID[4];
+    uint32_t        Subchunk2Size;
+} myHeader;
 
 double* readWavFile(int *arraySize, int *channels, char *filename);	
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile);
