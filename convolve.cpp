@@ -92,13 +92,27 @@ int main(int argc, char **argv) {
 	double *inputArray = readWavFile(&inputSamples, &inputChannels, inputFilename);
     double *irArray = readWavFile(&irSamples, &irChannels, irFilename);
 
-    printf("Writing result to file %s...\n", outputFilename);
-    writeWavFile(inputArray, inputSamples, inputChannels, outputFilename);
+    convolve(inputArray, irArray, inputSamples, irSamples, inputChannels);
     
     printf("Finished");
 
 }
 
+void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
+
+    int outputChannels = channels;
+    int outputSize = inpSize + irSize - 1;
+    double *outputArray = new double[outputSize];
+
+    for(int i = 0;i < irSize;i++){
+         for(int j = 0;j < inpSize;j++){
+            outputArray[i+j] += IR[i] * INPUT[j];
+         }
+    }
+
+    printf("Writing result to file %s...\n", outputFilename);
+    writeWavFile(outputArray, outputSize, outputChannels, outputFilename);
+}
 
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
 

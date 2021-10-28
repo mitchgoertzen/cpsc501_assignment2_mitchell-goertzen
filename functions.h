@@ -20,6 +20,8 @@ typedef struct HEADER
     uint32_t        Subchunk2Size;
 } myHeader;
 
+void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels);
+
 double* readWavFile(int *arraySize, int *channels, char *filename);	
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile);
 
