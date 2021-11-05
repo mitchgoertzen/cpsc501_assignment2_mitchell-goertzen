@@ -104,24 +104,21 @@ void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
     int outputSize = inpSize + irSize - 1;
     double *outputArray = new double[outputSize];
 
-    
-    double irData;
     for(int i = 0;i < irSize;i++){
-        //OPTIMIZATION 2: Minimize Work by moving IR[i] out of inner-loop
-        irData = IR[i];
-        int j;
-        //OPTIMIZATION 1: Partial Unroll inner-loop
-        for(j = 0;j < inpSize - 2;j+=3){
+        for(int j = 0;j < inpSize;j++){
             outputArray[i+j] += irData * INPUT[j];
-            outputArray[i+j+1] += irData * INPUT[j+1];
-            outputArray[i+j+2] += irData * INPUT[j+2];
         }
-        if(j == inpSize - 1){
-            outputArray[i+j] += irData * INPUT[j];
-        } else if(j == inpSize - 2){
-            outputArray[i+j] += irData * INPUT[j];
-            outputArray[i+j+1] += irData * INPUT[j+1];
-        }
+    }
+
+    double largestDouble = 1;
+    for (int i=0; i< outputSize; i++) {
+		if (abs(outputArray[i]) > largestDouble) {
+			largestDouble = abs(outputArray[i]);
+		}
+    }
+
+    for (int i=0; i<outputSize; i++) {
+		outputArray[i] = (outputArray[i]/largestDouble);
     }
 
     printf("Writing result to file %s...\n", outputFilename);
@@ -161,16 +158,6 @@ double* readWavFile(int *arraySize, int *channels, char *filename){
         outputArray[i] = buffer[i];
     }
 
-    double largestDouble = 1;
-    for (int i=0; i< size; i++) {
-		if (abs(outputArray[i]) > largestDouble) {
-			largestDouble = abs(outputArray[i]);
-		}
-    }
-
-    for (int i=0; i<size; i++) {
-		outputArray[i] = (short) ((outputArray[i]/largestDouble)*MAX_SHORT_VALUE);
-    }
 
     delete buffer;
 
