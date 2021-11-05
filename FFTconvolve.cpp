@@ -10,7 +10,7 @@ FFT source: https://cp-algorithms.com/algebra/fft.html
 #include <math.h>	// includes sin
 #include <string>
 #include <fstream>
-#include "functions.h"
+#include "complex_functions.h"
 #include <iostream>
 
 // CONSTANTS ******************************

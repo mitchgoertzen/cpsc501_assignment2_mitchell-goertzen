@@ -1,6 +1,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <vector>
+
 int getFileSize(FILE* inFile);
 
 typedef struct HEADER
@@ -20,9 +22,17 @@ typedef struct HEADER
     uint32_t        Subchunk2Size;
 } myHeader;
 
+//complex list
+using cl = std::vector<std::pair<double, double>>;
+
+cl realToComplex(std::vector<double> const& a);
+std::pair<double, double> multiply(std::pair<double, double> const& a, std::pair<double, double> const& b);
+cl convolveWithFFT(cl const& a, cl const& b);
+void fft(cl & A, int direction);
+
 void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels);
 
-double* readWavFile(int *arraySize, int *channels, char *filename);	
+std::vector<double> readWavFile(int *arraySize, int *channels, char *filename);	
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile);
 
 void writeWavFile(double *outputArray, int outputArraySize, int channels, char *filename);
