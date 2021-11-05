@@ -1,3 +1,9 @@
+/*
+FFT source: https://cp-algorithms.com/algebra/fft.html
+        replaced use of C++ built-in complex class, because
+        I wasn't sure if I was allowed to use it
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -154,6 +160,42 @@ cl convolveWithFFT(cl const& a, cl const& b) {
 
 void fft(cl & A, int direction) {
 
+    int n = A.size();
+    if (n == 1)
+        return;
+
+    cl even(n / 2);
+    cl odd(n / 2);
+
+
+    for (int i = 0; 2 * i < n; i++) {
+        even[i] = A[2*i];
+        odd[i] = A[2*i+1];
+    }
+    
+    fft(even, direction);
+    fft(odd, direction);
+
+    double theta = 2 * PI / n * direction;
+    std::pair<double, double> omega(1, 0);
+    std::pair<double, double> omegan(cos(theta), sin(theta));
+    for (int i = 0; 2 * i < n; i++) {
+
+        std::pair<double, double> temp = multiply(omega, odd[i]);
+        A[i].first = even[i].first + temp.first;
+        A[i].second = even[i].second + temp.second;
+
+        A[i + n/2].first = even[i].first - temp.first;
+        A[i + n/2].second = even[i].second - temp.second;
+
+        if (direction == -1) {
+            A[i].first /= 2;
+            A[i].second /= 2;
+            A[i + n/2].first /= 2;
+            A[i + n/2].second /= 2;
+        }
+        omega = multiply(omega, omegan);
+    }
 }
 
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
@@ -323,7 +365,6 @@ int freadIntLSB(FILE *stream) {
 
     return data;
 }
-
 
 //writes a short integer to the provided stream in little-endian form
 size_t fwriteShortLSB(short int data, FILE *stream) {
