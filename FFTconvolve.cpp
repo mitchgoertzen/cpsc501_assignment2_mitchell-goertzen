@@ -38,6 +38,7 @@
 
 using namespace std;
 
+using cl = std::vector<std::pair<double, double>>;
 char *outputFilename;
 int main(int argc, char **argv) {
 	
@@ -84,7 +85,18 @@ int main(int argc, char **argv) {
 	std::vector<double> inputVector = readWavFile(&inputSamples, &inputChannels, inputFilename);
     std::vector<double> irVector = readWavFile(&irSamples, &irChannels, irFilename);
 
-    int n = 0;
+    cl complexInput = realToComplex(inputVector);
+    cl complexIR = realToComplex(irVector);
+
+    int maxSize = max(complexInput.size(), complexIR.size());
+    int n = 1;
+    while(n < maxSize){
+        n*=2;
+    }
+
+    complexInput.resize(n);
+    complexIR.resize(n);
+
     double* outputArray = new double[n];
 
     for(int i = 0; i < n;i++){
@@ -94,6 +106,27 @@ int main(int argc, char **argv) {
     
     printf("Finished");
 
+}
+
+cl realToComplex(std::vector<double> const& a){
+
+    int n = a.size();
+    cl complexOut;
+    
+    for(int i = 0; i < n;i++){
+        complexOut.push_back(make_pair(a[i], 0));
+    }
+    return complexOut;
+}
+
+std::pair<double, double> multiply(std::pair<double, double> const& a, std::pair<double, double> const& b) {
+
+    std::pair<double, double> C;
+
+        C.first = (a.first * b.first) - (a.second * b.second);
+        C.second = (a.second * b.first) + (a.first * b.second);
+ 
+    return C;
 }
 
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
