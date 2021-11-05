@@ -97,9 +97,11 @@ int main(int argc, char **argv) {
     complexInput.resize(n);
     complexIR.resize(n);
 
+    cl outputVector = convolveWithFFT(complexInput, complexIR);
     double* outputArray = new double[n];
 
     for(int i = 0; i < n;i++){
+        outputArray[i] = outputVector[i].first;
     } 
 
     writeWavFile(outputArray, n, inputChannels, outputFilename);
@@ -127,6 +129,31 @@ std::pair<double, double> multiply(std::pair<double, double> const& a, std::pair
         C.second = (a.second * b.first) + (a.first * b.second);
  
     return C;
+}
+
+cl convolveWithFFT(cl const& a, cl const& b) {
+
+    cl A = a;
+    cl B = b;
+
+    int n = A.size();
+    cl C(n);
+
+    fft(A, 1);
+    fft(B, 1);
+
+    for(int i = 0; i < n;i++){
+        C[i] = multiply(A[i], B[i]);
+    }
+
+    fft(C, -1);
+ 
+    return C;
+}
+
+
+void fft(cl & A, int direction) {
+
 }
 
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
