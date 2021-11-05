@@ -1,6 +1,9 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
+#include <complex>
+#include <vector>
+
 int getFileSize(FILE* inFile);
 
 typedef struct HEADER
@@ -22,7 +25,7 @@ typedef struct HEADER
 
 void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels);
 
-double* readWavFile(int *arraySize, int *channels, char *filename);	
+std::vector<double> readWavFile(int *arraySize, int *channels, char *filename);	
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile);
 
 void writeWavFile(double *outputArray, int outputArraySize, int channels, char *filename);
