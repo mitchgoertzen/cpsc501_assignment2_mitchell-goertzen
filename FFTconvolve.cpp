@@ -46,6 +46,7 @@ using namespace std;
 
 using cl = std::vector<std::pair<double, double>>;
 char *outputFilename;
+double TWOPI = 6.28318530717958;
 int main(int argc, char **argv) {
 	
 
@@ -185,8 +186,11 @@ void fft(cl & A, int direction) {
     fft(even, direction);
     fft(odd, direction);
 
+    std::pair<double, double> omega(1, 0);
+
+    //Optimization 3: Precompute using constant TWOPI
+    double theta = TWOPI / n * direction;
     //Optimization 2: Minimize Work
-    double theta = 2 * PI / n * direction;
     std::pair<double, double> omegan(cos(theta), sin(theta));
     for (int i = 0; 2 * i < n; i++) {
 
