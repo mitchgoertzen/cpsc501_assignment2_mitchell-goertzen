@@ -120,9 +120,18 @@ cl realToComplex(std::vector<double> const& a){
 
     int n = a.size();
     cl complexOut;
-    
-    for(int i = 0; i < n;i++){
+    //Optimization 1: Partial Unroll Loop
+    int i;
+    for(i = 0; i < n-2;i+=3){
         complexOut.push_back(make_pair(a[i], 0));
+        complexOut.push_back(make_pair(a[i+1], 0));
+        complexOut.push_back(make_pair(a[i+2], 0));
+    }
+    if(i == n - 1){
+        complexOut.push_back(make_pair(a[i], 0));
+    } else if(i == n - 2){
+        complexOut.push_back(make_pair(a[i], 0));
+        complexOut.push_back(make_pair(a[i+1], 0));
     }
     return complexOut;
 }
