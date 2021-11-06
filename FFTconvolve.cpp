@@ -179,8 +179,9 @@ void fft(cl & A, int direction) {
 
 
     for (int i = 0; 2 * i < n; i++) {
-        even[i] = A[2*i];
-        odd[i] = A[2*i+1];
+        //Optimization 4: Strength Reduction
+        even[i] = A[i+i];
+        odd[i] = A[i+i+1];
     }
     
     fft(even, direction);
