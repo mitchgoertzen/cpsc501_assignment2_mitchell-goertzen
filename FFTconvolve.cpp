@@ -105,17 +105,17 @@ int main(int argc, char **argv) {
 
     //Begin convolution with the two input vectors
     cl outputVector = convolveWithFFT(complexInput, complexIR);
-    double* outputArray = new double[n];
+    double* outputArray = new double[maxSize];
 
     //Copying the output vector's real numbers into the output array
-    for(int i = 0; i < n;i++){
+    for(int i = 0; i < maxSize;i++){
         outputArray[i] = outputVector[i].first;
     } 
 
     //the output array will now be written to a new wav file
-    writeWavFile(outputArray, n, inputChannels, outputFilename);
+    writeWavFile(outputArray, maxSize, inputChannels, outputFilename);
     
-    printf("Finished");
+    printf("Finished\n");
 
 }
 
