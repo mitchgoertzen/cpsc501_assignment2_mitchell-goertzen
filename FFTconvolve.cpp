@@ -1,9 +1,3 @@
-/*
-FFT source: https://cp-algorithms.com/algebra/fft.html
-        replaced use of C++ built-in complex class, because
-        I wasn't sure if I was allowed to use it
-*/
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -83,20 +77,25 @@ int main(int argc, char **argv) {
     int irChannels;
     int irSamples;
 
+    //Read the header data of both input files.
     printf("Reading wav file %s...\n", inputFilename);
     readWavFileHeader(&inputChannels, &inputSamples, inputFile);
 
     printf("Reading IR file %s...\n", irFilename);
     readWavFileHeader(&irChannels, &irSamples, irFile);
 
+    //Read the wav data of each input file and copy it into vectors
 	std::vector<double> inputVector = readWavFile(&inputSamples, &inputChannels, inputFilename);
     std::vector<double> irVector = readWavFile(&irSamples, &irChannels, irFilename);
 
+    //Converting the vectors of real numbers to vectors of complex numbers
     cl complexInput = realToComplex(inputVector);
     cl complexIR = realToComplex(irVector);
 
+    //Finding the file with the largest data size 
     int maxSize = max(complexInput.size(), complexIR.size());
     int n = 1;
+    //With the largest data size now found, n will be the next closest power of 2
     while(n < maxSize){
         n*=2;
     }
@@ -104,19 +103,27 @@ int main(int argc, char **argv) {
     complexInput.resize(n);
     complexIR.resize(n);
 
+    //Begin convolution with the two input vectors
     cl outputVector = convolveWithFFT(complexInput, complexIR);
     double* outputArray = new double[n];
 
+    //Copying the output vector's real numbers into the output array
     for(int i = 0; i < n;i++){
         outputArray[i] = outputVector[i].first;
     } 
 
+    //the output array will now be written to a new wav file
     writeWavFile(outputArray, n, inputChannels, outputFilename);
     
     printf("Finished");
 
 }
 
+/*
+Each element in the input vector will be combined with a 0 to make a new pair,
+which will then be placed into the output vector. The pairs represent the real
+and imaginary part of a complex number
+*/
 cl realToComplex(std::vector<double> const& a){
 
     int n = a.size();
@@ -137,16 +144,27 @@ cl realToComplex(std::vector<double> const& a){
     return complexOut;
 }
 
+/*
+This function is using the Karatsuba algorithm to multiply two complex numbers
+*/
 std::pair<double, double> multiply(std::pair<double, double> const& a, std::pair<double, double> const& b) {
 
     std::pair<double, double> C;
 
-        C.first = (a.first * b.first) - (a.second * b.second);
-        C.second = (a.second * b.first) + (a.first * b.second);
- 
+    C.first = (a.first * b.first) - (a.second * b.second);
+    C.second = (a.second * b.first) + (a.first * b.second);
+
     return C;
 }
 
+
+/*
+Follows the basic stucture for convolution using FFT.
+First, the two input arrays will be converted to frequency-domain
+using FFT, then they will be multiplied entry-wise where the resulting
+data will be put into a new vector C. C will then be converted back
+to time-domain with inverse fft, and finally returned
+*/
 cl convolveWithFFT(cl const& a, cl const& b) {
 
     cl A = a;
@@ -167,7 +185,21 @@ cl convolveWithFFT(cl const& a, cl const& b) {
     return C;
 }
 
+/*
+This function is the recursive FFT algorithm.
+It follows the steps of first splitting the input list
+into lists of odd and even indices. It then recurses on
+the even, then odd lists which have sizes of n/2. The base
+case of the recursion is a loop from 0 to n/2. Where the data
+from the even list is combined with the data from the odd list
+that has been multiplied by the n-th root of unity, which is
+where he variable omegan is from. Since e^(2(pi)ik/n) is equal
+to cos(2(pi)k/n) + i sin(2(pi)k/n)
 
+The source is from: https://cp-algorithms.com/algebra/fft.html
+but I replaced the use of C++ built-in complex class, because
+I wasn't sure if I was allowed to use it
+*/
 void fft(cl & A, int direction) {
 
     int n = A.size();
@@ -178,7 +210,7 @@ void fft(cl & A, int direction) {
     cl odd(n / 2);
 
 
-    for (int i = 0; 2 * i < n; i++) {
+    for (int i = 0; i + i < n; i++) {
         //Optimization 4: Strength Reduction
         even[i] = A[i+i];
         odd[i] = A[i+i+1];
@@ -213,6 +245,9 @@ void fft(cl & A, int direction) {
     }
 }
 
+/*
+This function takes an input wav file and reads data from its header
+*/
 void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
 
     myHeader wavHeader;
@@ -231,6 +266,9 @@ void readWavFileHeader(int *channels, int *numSamples, FILE *inputFile){
     return;
 }
 
+/*
+This function takes the wav data from a wav file and copies it into the output vector
+*/
 std::vector<double> readWavFile(int *arraySize, int *channels, char *filename){
     
     int numChannels = *channels;
