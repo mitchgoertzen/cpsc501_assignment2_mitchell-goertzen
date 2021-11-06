@@ -185,12 +185,13 @@ void fft(cl & A, int direction) {
     fft(even, direction);
     fft(odd, direction);
 
+    //Optimization 2: Minimize Work
     double theta = 2 * PI / n * direction;
-    std::pair<double, double> omega(1, 0);
     std::pair<double, double> omegan(cos(theta), sin(theta));
     for (int i = 0; 2 * i < n; i++) {
 
         std::pair<double, double> temp = multiply(omega, odd[i]);
+
         A[i].first = even[i].first + temp.first;
         A[i].second = even[i].second + temp.second;
 
