@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
 
 }
 
-void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
+void convolve(double* INPUT, double* irData, int inpSize, int irSize, int channels){
 
     int outputChannels = channels;
     int outputSize = inpSize + irSize - 1;
@@ -106,7 +106,7 @@ void convolve(double* INPUT, double* IR, int inpSize, int irSize, int channels){
 
     for(int i = 0;i < irSize;i++){
         for(int j = 0;j < inpSize;j++){
-            outputArray[i+j] += irData * INPUT[j];
+            outputArray[i+j] += irData[i] * INPUT[j];
         }
     }
 
